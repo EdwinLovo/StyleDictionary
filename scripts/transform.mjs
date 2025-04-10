@@ -1,22 +1,26 @@
 import StyleDictionary from "style-dictionary";
 import { camelCase } from "change-case";
 import fs from "fs-extra";
-import path from "path";
 import config from "../config/android.compose.json" assert { type: "json" };
 import { transformTypes } from "style-dictionary/enums";
 
-// Transform token name → camelCase
+// Custom token name: lightBlue2700 or darkRed400
 StyleDictionary.registerTransform({
   name: "android/color-name",
   type: transformTypes.name,
   filter: (token) => token.type === "color",
   transform: (token) => {
-    return camelCase(token.path.join("_"));
+    const theme = token.attributes?.theme || "";
+    const colorFamily = token.attributes?.item || "";
+    const level = token.attributes?.subitem || "";
+    const themePrefix = theme === "light" ? "light" : "dark";
+    const capitalizedFamily =
+      colorFamily.charAt(0).toUpperCase() + colorFamily.slice(1);
+    return `${themePrefix}${capitalizedFamily}${level}`;
   },
 });
 
-
-// Compose-compatible hex color (preserves 8 digits like #FFFFFFFF)
+// Compose-compatible hex color (preserves 8 digits)
 StyleDictionary.registerFormat({
   name: "android/composeColor",
   format: ({ dictionary }) => {
@@ -26,13 +30,13 @@ StyleDictionary.registerFormat({
       ...properties.map((token) => {
         const name = token.name.replace(/[-.]/g, "_");
         const hex = token.value.replace("#", "").substring(0, 8).toUpperCase();
-        return `val ${name} = Color(0x${hex})`;
+        return `internal val ${name} = Color(0x${hex})`;
       }),
     ].join("\n");
   },
 });
 
-// Preprocess: Inject 'theme' attribute
+// Preprocess: Inject theme and structured attributes
 function injectThemeAttributes(filePath) {
   const data = fs.readJsonSync(filePath);
   const themed = { ...data };
@@ -66,7 +70,7 @@ function injectThemeAttributes(filePath) {
 
 // Inject theme + build
 const input = injectThemeAttributes("./tokens/colors.json");
-config.source = [input]; // override config to use the preprocessed file
+config.source = [input];
 
 const sd = new StyleDictionary(config);
 await sd.buildAllPlatforms();

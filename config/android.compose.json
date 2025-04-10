@@ -1,33 +1,14 @@
 {
   "source": ["tokens/colors.json"],
   "platforms": {
-    "androidComposeLight": {
+    "androidCompose": {
       "buildPath": "build/android/compose/",
       "transformGroup": "android",
+      "transforms": ["attribute/cti", "android/color-name", "color/hex"],
       "files": [
         {
-          "destination": "ColorLight.kt",
-          "format": "android/composeColor",
-          "filter": {
-            "attributes": {
-              "theme": "light"
-            }
-          }
-        }
-      ]
-    },
-    "androidComposeDark": {
-      "buildPath": "build/android/compose/",
-      "transformGroup": "android",
-      "files": [
-        {
-          "destination": "ColorDark.kt",
-          "format": "android/composeColor",
-          "filter": {
-            "attributes": {
-              "theme": "dark"
-            }
-          }
+          "destination": "Colors.kt",
+          "format": "android/composeColor"
         }
       ]
     }
